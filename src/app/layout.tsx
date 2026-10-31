@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Space_Grotesk, JetBrains_Mono } from 'next/font/google'
+import localFont from 'next/font/local'
 import { Toaster } from 'sonner'
 import { TooltipProvider } from '@/components/ui/misc'
 import { Header } from '@/components/site/Header'
@@ -7,20 +7,41 @@ import { Footer } from '@/components/site/Footer'
 import { CartDrawer } from '@/components/site/CartDrawer'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
+/* ===========================================================================
+   Fonts are self-hosted rather than pulled through `next/font/google`.
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-space-grotesk',
-  weight: ['500', '600', '700'],
+   That loader fetches the font CSS from Google at build time, which makes the
+   build depend on a third-party network call — it fails hard when that call
+   is blocked, rate-limited or returns a format the parser does not expect.
+   These are the same three families, latin subset, as variable woff2 files
+   (112 KB total), so there is also one fewer origin to connect to at runtime.
+
+   To update one: fetch its css2 URL with a modern browser user-agent, take
+   the woff2 whose unicode-range covers U+0000-00FF, and replace the file.
+   =========================================================================== */
+
+const inter = localFont({
+  src: './fonts/inter.woff2',
+  variable: '--font-inter',
   display: 'swap',
+  weight: '100 900',
+  fallback: ['system-ui', '-apple-system', 'sans-serif'],
 })
 
-const jetbrains = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains',
-  weight: ['400', '500'],
+const spaceGrotesk = localFont({
+  src: './fonts/space-grotesk.woff2',
+  variable: '--font-space-grotesk',
   display: 'swap',
+  weight: '300 700',
+  fallback: ['Arial Black', 'system-ui', 'sans-serif'],
+})
+
+const jetbrains = localFont({
+  src: './fonts/jetbrains-mono.woff2',
+  variable: '--font-jetbrains',
+  display: 'swap',
+  weight: '100 800',
+  fallback: ['ui-monospace', 'SFMono-Regular', 'monospace'],
 })
 
 export const metadata: Metadata = {
