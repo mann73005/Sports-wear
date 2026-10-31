@@ -1,0 +1,21 @@
+node_modules
+.next
+out
+dist
+.env
+.env*.local
+*.db
+*.db-journal
+prisma/dev.db*
+.DS_Store
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# Screenshot output. Regenerate with `npm run shoot` — no need to version 8MB
+# of PNGs that any checkout can rebuild.
+shots/
+shots-mobile/
+.vercel
+
+# Claude Code local settings
+.claude/settings.local.json

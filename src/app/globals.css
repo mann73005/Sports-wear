@@ -1,0 +1,246 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/* ===========================================================================
+   ATHLON — design tokens
+
+   The system is deliberately narrow. Premium athletic retail reads as
+   restraint: a long neutral ramp, ONE brand colour, black actions, and a
+   signal colour that is spent only where it means something (a price
+   recalculating, an order that needs attention). Every extra hue is a
+   chance for the page to look cheap, so there aren't any.
+   =========================================================================== */
+
+@theme {
+  /* --- neutrals: carbon -> chalk. Slight warm cast so it never reads blue. */
+  --color-carbon-950: #090a0a;
+  --color-carbon-900: #101213;
+  --color-carbon-850: #15181a;
+  --color-carbon-800: #1b1f21;
+  --color-carbon-700: #2b2f32;
+  --color-carbon-600: #45494d;
+  --color-carbon-500: #6b7074;
+  --color-carbon-400: #8e9497;
+  --color-carbon-300: #b7bcbd;
+  --color-carbon-200: #d9dbd6;
+  --color-carbon-100: #eceae4;
+  --color-carbon-50: #f4f2ed;
+  --color-chalk: #f8f7f3;
+
+  /* --- brand: deep field green. Heritage athletic, not sportswear-neon. */
+  --color-field-950: #04170f;
+  --color-field-900: #072318;
+  --color-field-800: #0b3326;
+  --color-field-700: #0e4234;
+  --color-field-600: #125443;
+  --color-field-500: #177055;
+  --color-field-400: #2a9070;
+  --color-field-300: #5bb795;
+
+  /* --- signal: spent sparingly. Live price, sale, blocked order. */
+  --color-signal-600: #c43c18;
+  --color-signal-500: #e8552f;
+  --color-signal-400: #ff7a52;
+
+  /* --- functional status */
+  --color-ok: #118257;
+  --color-warn: #b4760a;
+  --color-danger: #c0392b;
+
+  /* --- type */
+  --font-display: var(--font-space-grotesk), 'Arial Black', system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, 'SF Mono', monospace;
+
+  /* --- radii: tight. Premium retail is not pill-shaped. */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
+
+  /* --- motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+  --animate-marquee: marquee 38s linear infinite;
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  --animate-accordion-down: accordion-down 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-accordion-up: accordion-up 0.24s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* Radix measures the panel and exposes its height as a custom property. */
+@keyframes accordion-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ===========================================================================
+   base
+   =========================================================================== */
+
+@layer base {
+  * {
+    @apply border-carbon-200;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* The marquee and a few editorial rows are wider than the frame on
+       purpose. Clip them rather than letting the page scroll sideways. */
+    overflow-x: clip;
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply bg-chalk text-carbon-900 font-sans antialiased;
+    overflow-x: clip;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* Headings carry the display face at a tight optical track. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* A single, consistent focus ring everywhere — keyboard users should never
+     have to hunt for where they are. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-field-700;
+  }
+
+  ::selection {
+    @apply bg-field-700 text-chalk;
+  }
+}
+
+@layer components {
+  /* Page gutter. Every section uses this so the grid never drifts. */
+  .gutter {
+    @apply mx-auto w-full max-w-[1480px] px-5 sm:px-8 lg:px-12;
+  }
+
+  /* Small uppercase label — section eyebrows, field labels, table heads. */
+  .eyebrow {
+    @apply font-mono text-[10px] font-medium uppercase tracking-[0.18em];
+  }
+
+  /* Technical data: SKUs, order numbers, measurements, prices in spec sheets. */
+  .tabular {
+    @apply font-mono tabular-nums;
+  }
+
+  /* Hairline grid paper used behind the studio and the empty states. */
+  .grid-paper {
+    background-image:
+      linear-gradient(to right, rgb(0 0 0 / 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(0 0 0 / 0.045) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .grid-paper-dark {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  /* Film grain. Keeps large flat fields from banding on cheap panels. */
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+}
+
+@layer utilities {
+  /* Fluid display sizes — these do the heavy lifting on the marketing pages. */
+  .text-display-xl {
+    font-size: clamp(2.75rem, 7.6vw, 7.25rem);
+    line-height: 0.88;
+    letter-spacing: -0.04em;
+  }
+  .text-display-lg {
+    font-size: clamp(2.5rem, 7vw, 5.5rem);
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+  }
+  .text-display-md {
+    font-size: clamp(1.9rem, 4vw, 3.25rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .text-display-sm {
+    font-size: clamp(1.4rem, 2.4vw, 2rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}

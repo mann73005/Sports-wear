@@ -1,0 +1,155 @@
+// ATHLON — performance sportswear, printed to order.
+//
+// The catalogue is read-mostly and seeded. Orders are the write path: a
+// checkout writes one Order, N OrderItems (each carrying a frozen copy of the
+// product + its print spec) and the first OrderEvent. Production staff advance
+// the order by appending further events — the status on Order is a denormalised
+// cache of the newest event so list views don't have to join.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  // Short line used on cards; `description` is the PDP long copy.
+  blurb       String
+  description String
+
+  category String // jersey | tee | hoodie | shorts | tights | jacket | tank | cap
+  sport    String // football | basketball | running | training | cycling | multi
+  gender   String // men | women | unisex
+
+  // Money is stored in whole cents everywhere in this app. Never floats.
+  basePrice Int
+  sku       String @unique
+
+  // Construction detail — this is what justifies a premium price on the PDP.
+  fabric     String
+  weightGsm  Int
+  fit        String // compression | athletic | regular | relaxed
+  features   String // JSON string[] — SQLite has no native array type
+  careNotes  String
+
+  // Does this product go through the customiser?
+  customizable Boolean @default(true)
+  // Which print placements this garment physically supports: JSON string[]
+  printZones   String  @default("[\"front\",\"back\"]")
+
+  badge    String? // "new" | "bestseller" | "pro" | null
+  rating   Float   @default(0)
+  reviews  Int     @default(0)
+  featured Boolean @default(false)
+
+  variants Variant[]
+
+  createdAt DateTime @default(now())
+
+  @@index([category])
+  @@index([sport])
+}
+
+model Variant {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  colorName String
+  // Garment artwork is vector, so a colourway is just the three paint slots
+  // the renderer needs: body, accent panels, trim.
+  bodyHex   String
+  accentHex String
+  trimHex   String
+
+  // JSON Record<string, number> of size -> units on hand.
+  stock String
+
+  @@unique([productId, colorName])
+}
+
+model Order {
+  id     String @id @default(cuid())
+  // Human-facing reference. This, plus the email, is what order lookup uses.
+  number String @unique
+
+  email   String
+  name    String
+  phone   String?
+
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  region       String
+  postcode     String
+  country      String
+
+  shippingMethod String // standard | express | rush
+
+  // All amounts in cents.
+  subtotal   Int
+  printTotal Int
+  shipping   Int
+  tax        Int
+  discount   Int    @default(0)
+  total      Int
+
+  status String @default("received")
+  notes  String?
+
+  items  OrderItem[]
+  events OrderEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Frozen snapshot. If the catalogue changes later, the order still shows
+  // what was actually bought and at what price.
+  productId   String
+  productSlug String
+  name        String
+  sku         String
+  category    String
+
+  size      String
+  colorName String
+  bodyHex   String
+  accentHex String
+  trimHex   String
+
+  quantity  Int
+  unitPrice Int // base garment, cents
+  printCost Int // per-unit customisation cost, cents
+  lineTotal Int // (unitPrice + printCost) * quantity
+
+  // The print spec: null for a stock item, otherwise the full customisation
+  // payload the floor needs to produce it. See lib/customization.ts.
+  customization String?
+}
+
+model OrderEvent {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  status    String
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}

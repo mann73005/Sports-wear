@@ -1,0 +1,7 @@
+# Normalise to LF in the repository. Checked out native on Windows, so this
+# repo does not churn line endings when it moves between machines or CI.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.db  binary
